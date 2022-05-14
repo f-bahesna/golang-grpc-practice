@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	pb "fbahesna.com/learn/grpc-practice/student"
+	"fmt"
 	"google.golang.org/grpc"
 	"io/ioutil"
 	"log"
@@ -11,13 +12,13 @@ import (
 	"sync"
 )
 
+//karena interface, struct harus implementasikan interface dari student.proto disini
 type dataStudentServer struct {
 	pb.UnimplementedDataStudentServer
 	mu       sync.Mutex
 	students []*pb.Student
 }
 
-//karena interface, kita harus implementasikan disini
 func (d *dataStudentServer) FindStudentByEmail(ctx context.Context, student *pb.Student) (*pb.Student, error) {
 	for _, v := range d.students {
 		if v.Email == student.Email {
@@ -28,13 +29,14 @@ func (d *dataStudentServer) FindStudentByEmail(ctx context.Context, student *pb.
 	return nil, nil
 }
 
-//nge load data students
+//nge loa d data students
 func (d *dataStudentServer) loadData() {
 	data, err := ioutil.ReadFile("data/students.json")
 	if err != nil {
 		log.Fatalln("error in read file", err.Error())
 	}
 
+	fmt.Println(json.Unmarshal(data, &d.students))
 	//unmarshal data taruh ke pointer &d.students
 	if err := json.Unmarshal(data, &d.students); err != nil {
 		log.Fatalln("error in unmarshal gan", err.Error())
@@ -61,4 +63,6 @@ func main() {
 	if err := grpcServer.Serve(listen); err != nil {
 		log.Fatalln("error when serve", err.Error())
 	}
+
+	fmt.Println("server started tcp:1200")
 }
